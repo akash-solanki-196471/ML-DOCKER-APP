@@ -31,7 +31,7 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
 # Loading the model and cv
-model_path = os.path.join(os.path.dirname(__file__), 'model', 'my_model.h5')
+model_path = os.path.join(os.path.dirname(__file__), 'model', 'clothing_classification_model.h5')
 model = tf.keras.models.load_model(model_path)
 
 def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
