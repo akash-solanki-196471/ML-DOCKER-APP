@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 
+spec:
+  replicas: 3 
+  selector:
+    matchLabels:
+      app: ml-docker-app
+  template:
+    metadata:
+      labels:
+        app: ml-docker-app
+    spec:
+      containers:
+      - name: quizzical_kapista
+        image: ml-docker-app:latest  
+        ports:
+        - containerPort: 80  # Assuming your FastAPI application runs on port 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-docker-service
+spec:
+  selector:
+    app: ml-docker-app
+  ports:
+    - protocol: TCP
+      port: 80  # Port on which the service will be exposed
+      targetPort: 80  # Port on which the container is listening
+  type: LoadBalancer  # Use LoadBalancer type if running in a cloud environment
