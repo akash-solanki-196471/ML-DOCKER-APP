@@ -10,6 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 import ast
 import os
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app")
@@ -19,6 +20,14 @@ engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You might want to restrict this to specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class PredictionLog(Base):
     __tablename__ = "prediction_logs"
@@ -35,6 +44,8 @@ model_path = os.path.join(os.path.dirname(__file__), 'model', 'clothing_classifi
 model = tf.keras.models.load_model(model_path)
 
 def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
+    if credentials is None and request.method == "OPTIONS":
+        return None
     correct_username = os.environ.get("APP_USERNAME")  # replace with your desired username
     correct_password = os.environ.get("APP_PASSWORD")  # replace with your desired password
 
@@ -50,12 +61,18 @@ def get_db():
     finally:
         db.close()
 
+
+
+@app.options("/")
+async def options():
+    return {"msg": "OK"}
+
 @app.get("/")
 def read_root(request: Request, username: str = Depends(authenticate_user)):
     return templates.TemplateResponse("index.html", {"request": request, "username": username})
 
 @app.post("/predict")
-async def predict(image: str = Form(...), username: str = Depends(authenticate_user),db: Session = Depends(get_db)):
+async def predict(image: str = Form(...),db: Session = Depends(get_db)):
     # Taking the input
     array_list = ast.literal_eval(image)
     # Convert the list to a NumPy array
